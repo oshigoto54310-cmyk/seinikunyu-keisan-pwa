@@ -5,6 +5,9 @@ const form = document.querySelector("#calculator-form");
 const fields = Object.fromEntries(
   ["rawCost", "sellingPrice", "yieldRate", "hqRate", "suppliesRate"].map((name) => [name, form.elements.namedItem(name)]),
 );
+for (const field of Object.values(fields)) {
+  field.addEventListener("focus", () => field.select());
+}
 const resultElements = {
   panel: document.querySelector(".result-panel"),
   rate: document.querySelector("#margin-rate"),
