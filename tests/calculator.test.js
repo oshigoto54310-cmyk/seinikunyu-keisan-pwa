@@ -22,12 +22,24 @@ test("80%歩留まりでは歩留後原価が上がる", () => {
   assert.equal(result.marginRate, 27.8125);
 });
 
+test("歩留まり後にロス率を反映して完成品原価を計算する", () => {
+  const result = calculate({ rawCost: 1000, sellingPrice: 2000, hqRate: 10, yieldRate: 80, lossRate: 10, suppliesRate: 5 });
+  assert.equal(result.ok, true);
+  assert.equal(result.yieldAdjustedCost, 1375);
+  assert.equal(result.lossAdjustedCost, 1375 / 0.9);
+  assert.equal(result.finishedCost, (1375 / 0.9) * 1.05);
+});
+
 test("売価0円は値入率を計算せずエラーを返す", () => {
   assert.deepEqual(calculate({ rawCost: 1000, sellingPrice: 0 }), { ok: false, error: "sale-price-zero", field: "sellingPrice" });
 });
 
 test("歩留まり0%はゼロ除算せずエラーを返す", () => {
   assert.deepEqual(calculate({ rawCost: 1000, sellingPrice: 2000, yieldRate: 0 }), { ok: false, error: "yield-zero", field: "yieldRate" });
+});
+
+test("ロス率100%以上は原価を計算せずエラーを返す", () => {
+  assert.deepEqual(calculate({ rawCost: 1000, sellingPrice: 2000, lossRate: 100 }), { ok: false, error: "loss-rate-range", field: "lossRate" });
 });
 
 test("必須項目が未入力なら未計算として扱う", () => {

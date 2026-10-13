@@ -5,7 +5,7 @@ const LEGACY_SETTINGS_KEY = "niku-margin-settings-v1";
 const DEFAULT_SETTINGS = { hqRate: "5", suppliesRate: "2.5" };
 const form = document.querySelector("#calculator-form");
 const fields = Object.fromEntries(
-  ["rawCost", "sellingPrice", "yieldRate", "hqRate", "suppliesRate"].map((name) => [name, form.elements.namedItem(name)]),
+  ["rawCost", "sellingPrice", "yieldRate", "lossRate", "hqRate", "suppliesRate"].map((name) => [name, form.elements.namedItem(name)]),
 );
 for (const field of Object.values(fields)) {
   field.addEventListener("focus", () => field.select());
@@ -17,6 +17,7 @@ const resultElements = {
   finished: document.querySelector("#finished-cost"),
   hq: document.querySelector("#hq-cost"),
   yield: document.querySelector("#yield-cost"),
+  loss: document.querySelector("#loss-cost"),
   message: document.querySelector("#result-message"),
   saveStatus: document.querySelector("#save-status"),
   settingsPreview: document.querySelector("#settings-preview"),
@@ -59,6 +60,7 @@ function showEmpty(message, hasError = false) {
   setValue(resultElements.finished, "—", "円/kg");
   setValue(resultElements.hq, "—", "円/kg");
   setValue(resultElements.yield, "—", "円/kg");
+  setValue(resultElements.loss, "—", "円/kg");
   resultElements.message.textContent = message;
 }
 
@@ -66,6 +68,7 @@ function errorMessage(result) {
   if (result.error === "missing" && result.field === "yieldRate") return "歩留まりを入力してください。";
   if (result.error === "sale-price-zero") return "売価は0円より大きい値を入力してください。";
   if (result.error === "yield-zero") return "歩留まりは0%より大きい値を入力してください。";
+  if (result.error === "loss-rate-range") return "ロス率は0%以上100%未満を入力してください。";
   if (result.error === "negative") return "率・原価・売価に負の値は入力できません。";
   if (result.error === "invalid") return "数値を確認してください。";
   return "裸原価と売価を入力すると計算します。";
@@ -89,6 +92,7 @@ function render() {
   setValue(resultElements.finished, formatYen(result.finishedCost), "円/kg");
   setValue(resultElements.hq, formatYen(result.hqAdjustedCost), "円/kg");
   setValue(resultElements.yield, formatYen(result.yieldAdjustedCost), "円/kg");
+  setValue(resultElements.loss, formatYen(result.lossAdjustedCost), "円/kg");
   resultElements.message.textContent = result.marginRate < 0 ? "売価が完成品原価を下回っています。" : "";
 }
 
@@ -138,6 +142,7 @@ document.querySelector("#clear-product").addEventListener("click", () => {
   fields.rawCost.value = "";
   fields.sellingPrice.value = "";
   fields.yieldRate.value = "100";
+  fields.lossRate.value = "0";
   render();
   fields.rawCost.focus({ preventScroll: true });
 });

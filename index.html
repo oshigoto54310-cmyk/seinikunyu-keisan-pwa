@@ -50,6 +50,10 @@
           <span>歩留後原価</span>
           <strong id="yield-cost">—<small>円/kg</small></strong>
         </div>
+        <div class="detail-row">
+          <span>ロス反映後原価</span>
+          <strong id="loss-cost">—<small>円/kg</small></strong>
+        </div>
       </section>
 
       <form id="calculator-form" novalidate>
@@ -74,6 +78,10 @@
             <label class="field" for="yield-rate">
               <span class="field-copy"><span class="field-label">歩留まり</span><span class="field-unit">%</span></span>
               <input id="yield-rate" name="yieldRate" type="text" inputmode="decimal" value="100" autocomplete="off">
+            </label>
+            <label class="field" for="loss-rate">
+              <span class="field-copy"><span class="field-label">ロス率</span><span class="field-unit">%</span></span>
+              <input id="loss-rate" name="lossRate" type="text" inputmode="decimal" value="0" autocomplete="off">
             </label>
           </div>
         </section>

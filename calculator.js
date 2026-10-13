@@ -6,6 +6,7 @@ export function calculate(input) {
     sellingPrice: input.sellingPrice,
     hqRate: input.hqRate ?? 0,
     yieldRate: Object.hasOwn(input, "yieldRate") ? input.yieldRate : 100,
+    lossRate: input.lossRate ?? 0,
     suppliesRate: input.suppliesRate ?? 0,
   };
 
@@ -24,10 +25,12 @@ export function calculate(input) {
 
   if (values.sellingPrice === 0) return { ok: false, error: "sale-price-zero", field: "sellingPrice" };
   if (values.yieldRate === 0) return { ok: false, error: "yield-zero", field: "yieldRate" };
+  if (values.lossRate >= 100) return { ok: false, error: "loss-rate-range", field: "lossRate" };
 
   const hqAdjustedCost = values.rawCost * (1 + values.hqRate / 100);
   const yieldAdjustedCost = hqAdjustedCost / (values.yieldRate / 100);
-  const finishedCost = yieldAdjustedCost * (1 + values.suppliesRate / 100);
+  const lossAdjustedCost = yieldAdjustedCost / (1 - values.lossRate / 100);
+  const finishedCost = lossAdjustedCost * (1 + values.suppliesRate / 100);
   const marginAmount = values.sellingPrice - finishedCost;
   const marginRate = marginAmount / values.sellingPrice * 100;
 
@@ -35,6 +38,7 @@ export function calculate(input) {
     ok: true,
     hqAdjustedCost,
     yieldAdjustedCost,
+    lossAdjustedCost,
     finishedCost,
     marginAmount,
     marginRate,
