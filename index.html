@@ -78,25 +78,31 @@
           </div>
         </section>
 
-        <section class="input-section settings-section" aria-labelledby="settings-heading">
-          <div class="section-heading settings-heading">
+        <details id="settings-details" class="settings-section">
+          <summary class="section-heading settings-heading">
             <div>
               <p class="eyebrow">端末内に保存</p>
               <h2 id="settings-heading">共通条件</h2>
             </div>
-            <span id="save-status" class="save-status">この端末に保存</span>
+            <span class="settings-summary-meta">
+              <span id="settings-preview" class="settings-preview">本部 5%・消耗品 2.5%</span>
+              <span class="settings-chevron" aria-hidden="true">⌄</span>
+            </span>
+          </summary>
+          <div class="settings-content">
+            <p id="save-status" class="save-status">この端末に保存</p>
+            <div class="field-list">
+              <label class="field" for="hq-rate">
+                <span class="field-copy"><span class="field-label">本部費率</span><span class="field-unit">%</span></span>
+                <input id="hq-rate" name="hqRate" type="text" inputmode="decimal" value="5" autocomplete="off">
+              </label>
+              <label class="field" for="supplies-rate">
+                <span class="field-copy"><span class="field-label">消耗品比率</span><span class="field-unit">%</span></span>
+                <input id="supplies-rate" name="suppliesRate" type="text" inputmode="decimal" value="2.5" autocomplete="off">
+              </label>
+            </div>
           </div>
-          <div class="field-list">
-            <label class="field" for="hq-rate">
-              <span class="field-copy"><span class="field-label">本部費率</span><span class="field-unit">%</span></span>
-              <input id="hq-rate" name="hqRate" type="text" inputmode="decimal" value="0" autocomplete="off">
-            </label>
-            <label class="field" for="supplies-rate">
-              <span class="field-copy"><span class="field-label">消耗品比率</span><span class="field-unit">%</span></span>
-              <input id="supplies-rate" name="suppliesRate" type="text" inputmode="decimal" value="0" autocomplete="off">
-            </label>
-          </div>
-        </section>
+        </details>
       </form>
 
       <footer class="app-footer">計算結果はすべて税抜・円/kgです</footer>

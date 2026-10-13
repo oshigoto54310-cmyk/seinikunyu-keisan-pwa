@@ -78,8 +78,17 @@ h2 { margin: 0; font-size: 17px; letter-spacing: .01em; }
 .field:focus-within { border-color: #6b9280; box-shadow: 0 0 0 3px rgb(80 129 104 / 11%); }
 .field input::-webkit-inner-spin-button, .field input::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
 .field input[type=number] { -moz-appearance: textfield; }
-.settings-section { margin-top: 23px; }
-.settings-heading { align-items: end; }
+.settings-section { display: block; margin-top: 23px; border: 1px solid var(--line); border-radius: 16px; background: #f0f2ed; }
+.settings-heading { align-items: center; margin: 0; padding: 13px 12px; cursor: pointer; list-style: none; }
+.settings-heading::-webkit-details-marker { display: none; }
+.settings-heading:focus-visible { outline: 2px solid #6b9280; outline-offset: 2px; border-radius: 14px; }
+.settings-summary-meta { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.settings-preview { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.settings-chevron { display: grid; width: 22px; height: 22px; flex: 0 0 22px; place-items: center; border: 1px solid #d8dfd9; border-radius: 50%; color: var(--muted); font-size: 14px; line-height: 1; }
+.settings-section[open] .settings-heading { border-bottom: 1px solid var(--line); }
+.settings-section[open] .settings-chevron { transform: rotate(180deg); }
+.settings-content { padding: 9px 11px 11px; }
+.settings-content .save-status { margin: 0 2px 8px; padding-bottom: 0; text-align: right; }
 .save-status { padding-bottom: 3px; color: var(--muted); font-size: 10px; white-space: nowrap; }
 .save-status.is-error { color: var(--danger); }
 .app-footer { padding: 22px 0 0; color: var(--muted); font-size: 10px; text-align: center; }
@@ -89,6 +98,12 @@ h2 { margin: 0; font-size: 17px; letter-spacing: .01em; }
   .app-shell { min-height: auto; padding: 28px 30px; border: 1px solid #e8ebe5; border-radius: 28px; background: #f8f9f5; box-shadow: 0 18px 56px rgb(30 49 39 / 7%); }
   .margin-rate { font-size: 76px; }
   .card-value { font-size: 25px; }
+}
+
+@media (max-width: 360px) {
+  .settings-heading { gap: 7px; padding-right: 9px; padding-left: 9px; }
+  .settings-summary-meta { gap: 5px; }
+  .settings-preview { font-size: 9px; }
 }
 
 @media (prefers-reduced-motion: no-preference) {

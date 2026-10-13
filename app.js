@@ -1,6 +1,8 @@
 import { calculate } from "./calculator.js";
 
-const SETTINGS_KEY = "niku-margin-settings-v1";
+const SETTINGS_KEY = "niku-margin-settings-v2";
+const LEGACY_SETTINGS_KEY = "niku-margin-settings-v1";
+const DEFAULT_SETTINGS = { hqRate: "5", suppliesRate: "2.5" };
 const form = document.querySelector("#calculator-form");
 const fields = Object.fromEntries(
   ["rawCost", "sellingPrice", "yieldRate", "hqRate", "suppliesRate"].map((name) => [name, form.elements.namedItem(name)]),
@@ -17,6 +19,7 @@ const resultElements = {
   yield: document.querySelector("#yield-cost"),
   message: document.querySelector("#result-message"),
   saveStatus: document.querySelector("#save-status"),
+  settingsPreview: document.querySelector("#settings-preview"),
 };
 const yenFormat = new Intl.NumberFormat("ja-JP", { maximumFractionDigits: 1 });
 const rateFormat = new Intl.NumberFormat("ja-JP", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -31,6 +34,11 @@ function inputValues() {
 
 function formatYen(value) {
   return yenFormat.format(value);
+}
+
+function updateSettingsPreview() {
+  const displayRate = (field) => field.value.trim() === "" ? "—" : `${field.value.trim()}%`;
+  resultElements.settingsPreview.textContent = `本部 ${displayRate(fields.hqRate)}・消耗品 ${displayRate(fields.suppliesRate)}`;
 }
 
 function setValue(element, value, unit) {
@@ -64,6 +72,7 @@ function errorMessage(result) {
 }
 
 function render() {
+  updateSettingsPreview();
   const result = calculate(inputValues());
   if (!result.ok) {
     showEmpty(errorMessage(result), result.error !== "missing");
@@ -85,11 +94,23 @@ function render() {
 
 function loadSettings() {
   try {
-    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    const legacyStored = stored ? null : localStorage.getItem(LEGACY_SETTINGS_KEY);
+    const saved = stored || legacyStored ? JSON.parse(stored || legacyStored) : null;
+    const isLegacyDefault = !stored && saved && Number(saved.hqRate) === 0 && Number(saved.suppliesRate) === 0;
+    let shouldSave = !stored || isLegacyDefault;
     for (const name of ["hqRate", "suppliesRate"]) {
-      const value = Number(saved[name]);
-      if (Number.isFinite(value) && value >= 0) fields[name].value = String(value);
+      const rawValue = isLegacyDefault ? DEFAULT_SETTINGS[name] : saved?.[name];
+      const hasValue = rawValue !== undefined && rawValue !== null && String(rawValue).trim() !== "";
+      const value = Number(rawValue);
+      if (hasValue && Number.isFinite(value) && value >= 0) {
+        fields[name].value = String(value);
+      } else {
+        fields[name].value = DEFAULT_SETTINGS[name];
+        shouldSave = true;
+      }
     }
+    if (shouldSave) saveSettings();
   } catch {
     resultElements.saveStatus.textContent = "設定を読み込めません";
     resultElements.saveStatus.classList.add("is-error");
