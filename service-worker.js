@@ -1,4 +1,4 @@
-const CACHE_NAME = "niku-margin-v7";
+const CACHE_NAME = "niku-margin-v8";
 const APP_FILES = [
   "./",
   "./index.html",

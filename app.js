@@ -5,7 +5,8 @@ const LEGACY_SETTINGS_KEY = "niku-margin-settings-v1";
 const DEFAULT_SETTINGS = { hqRate: "5", suppliesRate: "2.5" };
 const form = document.querySelector("#calculator-form");
 const fields = Object.fromEntries(
-  ["rawCost", "sellingPrice", "yieldRate", "lossRate", "hqRate", "suppliesRate"].map((name) => [name, form.elements.namedItem(name)]),
+  ["rawCost", "sellingPrice", "yieldRate", "lossRate", "hqRate", "suppliesRate", "targetMarginRate"]
+    .map((name) => [name, form.elements.namedItem(name)]),
 );
 for (const field of Object.values(fields)) {
   field.addEventListener("focus", () => field.select());
@@ -17,12 +18,19 @@ const resultElements = {
   finished: document.querySelector("#finished-cost"),
   hq: document.querySelector("#hq-cost"),
   yield: document.querySelector("#yield-cost"),
+  supplies: document.querySelector("#supplies-cost"),
   loss: document.querySelector("#loss-cost"),
   message: document.querySelector("#result-message"),
+  requiredSellingPrice: document.querySelector("#required-selling-price"),
+  reference: document.querySelector("#required-price-reference"),
+  allowableRawCost: document.querySelector("#allowable-raw-cost"),
+  reverseMessage: document.querySelector("#reverse-message"),
+  reverseCard: document.querySelector(".reverse-card"),
   saveStatus: document.querySelector("#save-status"),
   settingsPreview: document.querySelector("#settings-preview"),
 };
-const yenFormat = new Intl.NumberFormat("ja-JP", { maximumFractionDigits: 1 });
+const yenFormat = new Intl.NumberFormat("ja-JP", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const wholeYenFormat = new Intl.NumberFormat("ja-JP", { maximumFractionDigits: 0 });
 const rateFormat = new Intl.NumberFormat("ja-JP", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function readNumber(field) {
@@ -34,7 +42,11 @@ function inputValues() {
 }
 
 function formatYen(value) {
-  return yenFormat.format(value);
+  return Number.isFinite(value) ? yenFormat.format(value) : "—";
+}
+
+function formatRate(value) {
+  return Number.isFinite(value) ? rateFormat.format(value) : "—";
 }
 
 function updateSettingsPreview() {
@@ -49,51 +61,84 @@ function setValue(element, value, unit) {
   element.append(span);
 }
 
-function showEmpty(message, hasError = false) {
-  resultElements.panel.classList.toggle("has-error", hasError);
-  resultElements.panel.classList.remove("is-negative");
-  resultElements.rate.replaceChildren(document.createTextNode("—"));
+function setMarginRate(value) {
+  resultElements.rate.replaceChildren(document.createTextNode(formatRate(value)));
   const percent = document.createElement("span");
   percent.textContent = "%";
   resultElements.rate.append(percent);
-  setValue(resultElements.amount, "—", "円/kg");
-  setValue(resultElements.finished, "—", "円/kg");
-  setValue(resultElements.hq, "—", "円/kg");
-  setValue(resultElements.yield, "—", "円/kg");
-  setValue(resultElements.loss, "—", "円/kg");
-  resultElements.message.textContent = message;
+
+  if (!Number.isFinite(value)) {
+    resultElements.rate.style.removeProperty("--margin-rate-size");
+    return;
+  }
+  const panelWidth = resultElements.panel.clientWidth || window.innerWidth;
+  const usableWidth = Math.max(80, panelWidth - 44);
+  const baseSize = Math.min(78, Math.max(54, window.innerWidth * 0.16));
+  const characterCount = Array.from(`${formatRate(value)}%`).length;
+  const safeSize = usableWidth / (characterCount * 0.62);
+  resultElements.rate.style.setProperty("--margin-rate-size", `${Math.min(baseSize, safeSize)}px`);
 }
 
-function errorMessage(result) {
-  if (result.error === "missing" && result.field === "yieldRate") return "歩留まりを入力してください。";
-  if (result.error === "sale-price-zero") return "売価は0円より大きい値を入力してください。";
-  if (result.error === "yield-zero") return "歩留まりは0%より大きい値を入力してください。";
-  if (result.error === "loss-rate-range") return "ロス率は0%以上100%未満を入力してください。";
-  if (result.error === "negative") return "率・原価・売価に負の値は入力できません。";
-  if (result.error === "invalid") return "数値を確認してください。";
-  return "裸原価と売価を入力すると計算します。";
+function updateFieldValidity(result) {
+  const invalidNames = new Set();
+  const { errors } = result;
+  for (const error of [errors.rate, errors.rawCost, errors.sellingPrice, errors.targetMarginRate]) {
+    if (error && error.code !== "missing") invalidNames.add(error.field);
+  }
+  for (const [name, field] of Object.entries(fields)) {
+    if (invalidNames.has(name)) field.setAttribute("aria-invalid", "true");
+    else field.removeAttribute("aria-invalid");
+  }
+}
+
+function updateMainMessage(result) {
+  const { errors } = result;
+  const blockingError = errors.rate
+    ?? (errors.rawCost?.code !== "missing" ? errors.rawCost : null)
+    ?? (errors.sellingPrice?.code !== "missing" ? errors.sellingPrice : null)
+    ?? errors.calculation;
+
+  if (blockingError) {
+    resultElements.message.textContent = blockingError.message;
+    resultElements.panel.classList.add("has-error");
+    return;
+  }
+
+  resultElements.panel.classList.remove("has-error");
+  if (errors.rawCost?.code === "missing") {
+    resultElements.message.textContent = errors.sellingPrice?.code === "missing"
+      ? "裸原価と売価を入力すると計算します。"
+      : "裸原価を入力すると完成品原価を計算します。";
+  } else if (errors.sellingPrice?.code === "missing") {
+    resultElements.message.textContent = "売価を入力すると値入率を計算します。";
+  } else {
+    resultElements.message.textContent = result.marginRate < 0 ? "売価が完成品原価を下回っています。" : "";
+  }
 }
 
 function render() {
   updateSettingsPreview();
   const result = calculate(inputValues());
-  if (!result.ok) {
-    showEmpty(errorMessage(result), result.error !== "missing");
-    return;
-  }
+  updateFieldValidity(result);
 
-  resultElements.panel.classList.remove("has-error");
-  resultElements.panel.classList.toggle("is-negative", result.marginRate < 0);
-  resultElements.rate.replaceChildren(document.createTextNode(rateFormat.format(result.marginRate)));
-  const percent = document.createElement("span");
-  percent.textContent = "%";
-  resultElements.rate.append(percent);
+  setMarginRate(result.marginRate);
   setValue(resultElements.amount, formatYen(result.marginAmount), "円/kg");
   setValue(resultElements.finished, formatYen(result.finishedCost), "円/kg");
   setValue(resultElements.hq, formatYen(result.hqAdjustedCost), "円/kg");
   setValue(resultElements.yield, formatYen(result.yieldAdjustedCost), "円/kg");
+  setValue(resultElements.supplies, formatYen(result.suppliesAdjustedCost), "円/kg");
   setValue(resultElements.loss, formatYen(result.lossAdjustedCost), "円/kg");
-  resultElements.message.textContent = result.marginRate < 0 ? "売価が完成品原価を下回っています。" : "";
+  resultElements.panel.classList.toggle("is-negative", Number.isFinite(result.marginRate) && result.marginRate < 0);
+  updateMainMessage(result);
+
+  setValue(resultElements.requiredSellingPrice, formatYen(result.requiredSellingPrice), "円/kg");
+  setValue(resultElements.allowableRawCost, formatYen(result.allowableRawCost), "円/kg");
+  resultElements.reference.textContent = Number.isFinite(result.reference100gPrice) && Number.isFinite(result.referenceMarginRate)
+    ? `100g当たり ${wholeYenFormat.format(result.reference100gPrice)}円（値入率 ${formatRate(result.referenceMarginRate)}%）`
+    : "100g当たり —円（値入率 —%）";
+  const reverseError = result.errors.targetMarginRate ?? result.errors.inverseCalculation;
+  resultElements.reverseMessage.textContent = reverseError?.message ?? "";
+  resultElements.reverseCard.classList.toggle("has-error", Boolean(reverseError));
 }
 
 function loadSettings() {
@@ -143,6 +188,7 @@ document.querySelector("#clear-product").addEventListener("click", () => {
   fields.sellingPrice.value = "";
   fields.yieldRate.value = "100";
   fields.lossRate.value = "0";
+  fields.targetMarginRate.value = "";
   render();
   fields.rawCost.focus({ preventScroll: true });
 });
@@ -151,6 +197,7 @@ form.addEventListener("submit", (event) => event.preventDefault());
 
 loadSettings();
 render();
+window.addEventListener("resize", render);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

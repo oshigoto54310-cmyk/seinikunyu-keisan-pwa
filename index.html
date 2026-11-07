@@ -51,6 +51,10 @@
           <strong id="yield-cost">—<small>円/kg</small></strong>
         </div>
         <div class="detail-row">
+          <span>消耗品加算後</span>
+          <strong id="supplies-cost">—<small>円/kg</small></strong>
+        </div>
+        <div class="detail-row">
           <span>ロス反映後原価</span>
           <strong id="loss-cost">—<small>円/kg</small></strong>
         </div>
@@ -98,6 +102,7 @@
             </span>
           </summary>
           <div class="settings-content">
+            <p class="settings-note">共通条件のみ、この端末に保存されます（商品条件は保存されません）</p>
             <p id="save-status" class="save-status">この端末に保存</p>
             <div class="field-list">
               <label class="field" for="hq-rate">
@@ -111,6 +116,33 @@
             </div>
           </div>
         </details>
+
+        <section class="reverse-section" aria-labelledby="reverse-heading">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">目標値入率から</p>
+              <h2 id="reverse-heading">逆算</h2>
+            </div>
+          </div>
+          <div class="reverse-card">
+            <label class="field" for="target-margin-rate">
+              <span class="field-copy"><span class="field-label">目標値入率</span><span class="field-unit">%</span></span>
+              <input id="target-margin-rate" name="targetMarginRate" type="text" inputmode="decimal" placeholder="例 25" autocomplete="off">
+            </label>
+            <p id="reverse-message" class="reverse-message" role="status" aria-live="polite"></p>
+            <div class="reverse-results" aria-label="逆算結果">
+              <div class="reverse-result">
+                <span class="reverse-result-label">必要売価</span>
+                <strong id="required-selling-price">—<small>円/kg</small></strong>
+                <p id="required-price-reference" class="reverse-reference">100g当たり —円（値入率 —%）</p>
+              </div>
+              <div class="reverse-result">
+                <span class="reverse-result-label">許容裸原価</span>
+                <strong id="allowable-raw-cost">—<small>円/kg</small></strong>
+              </div>
+            </div>
+          </div>
+        </section>
       </form>
 
       <footer class="app-footer">計算結果はすべて税抜・円/kgです</footer>
