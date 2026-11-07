@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "精肉 値入計算",
-  "short_name": "値入計算",
-  "description": "精肉商品の値入率と原価をその場で計算します。",
+  "name": "精肉 値入計算 デモ版",
+  "short_name": "値入デモ",
+  "description": "精肉商品の値入率と原価をその場で計算するデモ版です。",
   "lang": "ja-JP",
   "start_url": "./",
   "scope": "./",

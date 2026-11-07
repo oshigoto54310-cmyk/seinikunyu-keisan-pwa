@@ -38,6 +38,8 @@ button, input { font: inherit; }
 
 .app-header { display: flex; align-items: center; gap: 12px; margin: 0 0 20px; }
 .brand-mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; background: var(--green); color: var(--white); font-size: 20px; font-weight: 750; }
+.title-kicker { display: flex; align-items: center; gap: 8px; }
+.demo-badge { display: inline-flex; align-items: center; padding: 2px 7px; border: 1px solid var(--line); border-radius: 999px; background: #f0f2ed; color: var(--muted); font-size: 9px; font-weight: 700; line-height: 1.35; letter-spacing: .04em; }
 .eyebrow { margin: 0 0 3px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .09em; }
 h1 { margin: 0; font-size: 19px; line-height: 1.25; letter-spacing: .01em; }
 
@@ -94,18 +96,9 @@ h2 { margin: 0; font-size: 17px; letter-spacing: .01em; }
 .settings-content .save-status { margin: 0 2px 8px; padding-bottom: 0; text-align: right; }
 .save-status { padding-bottom: 3px; color: var(--muted); font-size: 10px; white-space: nowrap; }
 .save-status.is-error { color: var(--danger); }
-.reverse-section { margin-top: 24px; }
-.reverse-card { padding: 12px; border: 1px solid var(--line); border-radius: 17px; background: var(--white); }
-.reverse-message { margin: 0; color: var(--danger); font-size: 11px; line-height: 1.5; }
-.reverse-card.has-error .reverse-message { margin-top: 8px; }
-.reverse-results { margin-top: 10px; padding: 0 12px; border-radius: 13px; background: #ecefe9; }
-.reverse-result { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 4px 10px; min-height: 48px; padding: 9px 0; }
-.reverse-result + .reverse-result { border-top: 1px solid #dfe4dc; }
-.reverse-result-label { color: var(--muted); font-size: 11px; }
-.reverse-result strong { min-width: 0; color: var(--ink); font-size: clamp(16px, 5vw, 20px); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
-.reverse-result strong small { margin-left: 4px; color: var(--muted); font-size: 9px; font-weight: 500; }
-.reverse-reference { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
 .app-footer { padding: 22px 0 0; color: var(--muted); font-size: 10px; text-align: center; }
+.app-footer p { margin: 0; }
+.app-footer .demo-footer-note { margin-top: 6px; line-height: 1.5; }
 
 @media (min-width: 600px) {
   body { padding: 28px 0; }

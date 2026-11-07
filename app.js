@@ -1,11 +1,10 @@
 import { calculate } from "./calculator.js";
 
-const SETTINGS_KEY = "niku-margin-settings-v2";
-const LEGACY_SETTINGS_KEY = "niku-margin-settings-v1";
+const SETTINGS_KEY = "demo_niku-margin-settings-v1";
 const DEFAULT_SETTINGS = { hqRate: "5", suppliesRate: "2.5" };
 const form = document.querySelector("#calculator-form");
 const fields = Object.fromEntries(
-  ["rawCost", "sellingPrice", "yieldRate", "lossRate", "hqRate", "suppliesRate", "targetMarginRate"]
+  ["rawCost", "sellingPrice", "yieldRate", "lossRate", "hqRate", "suppliesRate"]
     .map((name) => [name, form.elements.namedItem(name)]),
 );
 for (const field of Object.values(fields)) {
@@ -21,16 +20,10 @@ const resultElements = {
   supplies: document.querySelector("#supplies-cost"),
   loss: document.querySelector("#loss-cost"),
   message: document.querySelector("#result-message"),
-  requiredSellingPrice: document.querySelector("#required-selling-price"),
-  reference: document.querySelector("#required-price-reference"),
-  allowableRawCost: document.querySelector("#allowable-raw-cost"),
-  reverseMessage: document.querySelector("#reverse-message"),
-  reverseCard: document.querySelector(".reverse-card"),
   saveStatus: document.querySelector("#save-status"),
   settingsPreview: document.querySelector("#settings-preview"),
 };
 const yenFormat = new Intl.NumberFormat("ja-JP", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const wholeYenFormat = new Intl.NumberFormat("ja-JP", { maximumFractionDigits: 0 });
 const rateFormat = new Intl.NumberFormat("ja-JP", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function readNumber(field) {
@@ -82,7 +75,7 @@ function setMarginRate(value) {
 function updateFieldValidity(result) {
   const invalidNames = new Set();
   const { errors } = result;
-  for (const error of [errors.rate, errors.rawCost, errors.sellingPrice, errors.targetMarginRate]) {
+  for (const error of [errors.rate, errors.rawCost, errors.sellingPrice]) {
     if (error && error.code !== "missing") invalidNames.add(error.field);
   }
   for (const [name, field] of Object.entries(fields)) {
@@ -130,26 +123,15 @@ function render() {
   setValue(resultElements.loss, formatYen(result.lossAdjustedCost), "円/kg");
   resultElements.panel.classList.toggle("is-negative", Number.isFinite(result.marginRate) && result.marginRate < 0);
   updateMainMessage(result);
-
-  setValue(resultElements.requiredSellingPrice, formatYen(result.requiredSellingPrice), "円/kg");
-  setValue(resultElements.allowableRawCost, formatYen(result.allowableRawCost), "円/kg");
-  resultElements.reference.textContent = Number.isFinite(result.reference100gPrice) && Number.isFinite(result.referenceMarginRate)
-    ? `100g当たり ${wholeYenFormat.format(result.reference100gPrice)}円（値入率 ${formatRate(result.referenceMarginRate)}%）`
-    : "100g当たり —円（値入率 —%）";
-  const reverseError = result.errors.targetMarginRate ?? result.errors.inverseCalculation;
-  resultElements.reverseMessage.textContent = reverseError?.message ?? "";
-  resultElements.reverseCard.classList.toggle("has-error", Boolean(reverseError));
 }
 
 function loadSettings() {
   try {
     const stored = localStorage.getItem(SETTINGS_KEY);
-    const legacyStored = stored ? null : localStorage.getItem(LEGACY_SETTINGS_KEY);
-    const saved = stored || legacyStored ? JSON.parse(stored || legacyStored) : null;
-    const isLegacyDefault = !stored && saved && Number(saved.hqRate) === 0 && Number(saved.suppliesRate) === 0;
-    let shouldSave = !stored || isLegacyDefault;
+    const saved = stored ? JSON.parse(stored) : null;
+    let shouldSave = !stored;
     for (const name of ["hqRate", "suppliesRate"]) {
-      const rawValue = isLegacyDefault ? DEFAULT_SETTINGS[name] : saved?.[name];
+      const rawValue = saved?.[name];
       const hasValue = rawValue !== undefined && rawValue !== null && String(rawValue).trim() !== "";
       const value = Number(rawValue);
       if (hasValue && Number.isFinite(value) && value >= 0) {
@@ -188,7 +170,6 @@ document.querySelector("#clear-product").addEventListener("click", () => {
   fields.sellingPrice.value = "";
   fields.yieldRate.value = "100";
   fields.lossRate.value = "0";
-  fields.targetMarginRate.value = "";
   render();
   fields.rawCost.focus({ preventScroll: true });
 });

@@ -4,19 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#173e36">
-    <meta name="description" content="精肉商品の値入率と原価をその場で計算します。">
+    <meta name="description" content="精肉商品の値入率と原価をその場で計算するデモ版です。">
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <link rel="stylesheet" href="./styles.css">
-    <title>精肉 値入計算</title>
+    <title>精肉 値入計算｜デモ版</title>
   </head>
   <body>
     <main class="app-shell">
       <header class="app-header">
         <div class="brand-mark" aria-hidden="true">値</div>
         <div>
-          <p class="eyebrow">精肉部門</p>
+          <div class="title-kicker">
+            <p class="eyebrow">精肉部門</p>
+            <span class="demo-badge">デモ版</span>
+          </div>
           <h1>値入計算</h1>
         </div>
       </header>
@@ -117,35 +120,12 @@
           </div>
         </details>
 
-        <section class="reverse-section" aria-labelledby="reverse-heading">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">目標値入率から</p>
-              <h2 id="reverse-heading">逆算</h2>
-            </div>
-          </div>
-          <div class="reverse-card">
-            <label class="field" for="target-margin-rate">
-              <span class="field-copy"><span class="field-label">目標値入率</span><span class="field-unit">%</span></span>
-              <input id="target-margin-rate" name="targetMarginRate" type="text" inputmode="decimal" placeholder="例 25" autocomplete="off">
-            </label>
-            <p id="reverse-message" class="reverse-message" role="status" aria-live="polite"></p>
-            <div class="reverse-results" aria-label="逆算結果">
-              <div class="reverse-result">
-                <span class="reverse-result-label">必要売価</span>
-                <strong id="required-selling-price">—<small>円/kg</small></strong>
-                <p id="required-price-reference" class="reverse-reference">100g当たり —円（値入率 —%）</p>
-              </div>
-              <div class="reverse-result">
-                <span class="reverse-result-label">許容裸原価</span>
-                <strong id="allowable-raw-cost">—<small>円/kg</small></strong>
-              </div>
-            </div>
-          </div>
-        </section>
       </form>
 
-      <footer class="app-footer">計算結果はすべて税抜・円/kgです</footer>
+      <footer class="app-footer">
+        <p>計算結果はすべて税抜・円/kgです</p>
+        <p class="demo-footer-note">目標値入率からの逆算（必要売価・許容原価）は製品版に含まれます</p>
+      </footer>
     </main>
     <script type="module" src="./app.js"></script>
   </body>

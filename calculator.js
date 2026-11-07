@@ -53,19 +53,6 @@ function positiveValueError(field, parsed, label) {
   return null;
 }
 
-function targetRateError(parsed) {
-  if (parsed.state === "empty") return null;
-  if (parsed.state === "invalid") return invalidNumber("targetMarginRate");
-  if (parsed.value <= 0 || parsed.value >= 100) {
-    return {
-      code: "range",
-      field: "targetMarginRate",
-      message: "目標値入率は0%より大きく100%未満の値を入力してください。",
-    };
-  }
-  return null;
-}
-
 function isFiniteResult(values) {
   return Object.values(values).every(Number.isFinite);
 }
@@ -77,15 +64,12 @@ export function calculate(input) {
   const yieldRate = parseValue(input, "yieldRate", 100);
   const lossRate = parseValue(input, "lossRate", 0);
   const suppliesRate = parseValue(input, "suppliesRate", 0);
-  const targetMarginRate = parseValue(input, "targetMarginRate", undefined);
-
   const rateError = percentError("hqRate", hqRate, 0, true, 100, false)
     ?? percentError("suppliesRate", suppliesRate, 0, true, 100, false)
     ?? percentError("yieldRate", yieldRate, 0, false, 100, true)
     ?? percentError("lossRate", lossRate, 0, true, 100, false);
   const rawCostError = positiveValueError("rawCost", rawCost, "裸原価");
   const sellingPriceError = positiveValueError("sellingPrice", sellingPrice, "売価");
-  const targetError = targetRateError(targetMarginRate);
 
   let calculationError = null;
   let costs = null;
@@ -117,36 +101,6 @@ export function calculate(input) {
     }
   }
 
-  let requiredSellingPrice = null;
-  let reference100gPrice = null;
-  let referenceMarginRate = null;
-  let inverseCalculationError = null;
-  if (!rateError && !rawCostError && !calculationError && !targetError && targetMarginRate.state === "value" && costs) {
-    const requiredPrice = costs.finishedCost / (1 - targetMarginRate.value / 100);
-    if (Number.isFinite(requiredPrice) && requiredPrice > 0) {
-      requiredSellingPrice = requiredPrice;
-      reference100gPrice = Math.ceil(requiredPrice / 10);
-      const referenceSellingPrice = reference100gPrice * 10;
-      const referenceRate = (referenceSellingPrice - costs.finishedCost) / referenceSellingPrice * 100;
-      if (Number.isFinite(referenceRate)) referenceMarginRate = referenceRate;
-      else inverseCalculationError = { code: "overflow", field: "targetMarginRate", message: "数値が大きすぎるため逆算できません。" };
-    } else {
-      inverseCalculationError = { code: "overflow", field: "targetMarginRate", message: "数値が大きすぎるため逆算できません。" };
-    }
-  }
-
-  let allowableRawCost = null;
-  if (!rateError && !targetError && targetMarginRate.state === "value" && !sellingPriceError) {
-    const allowed = sellingPrice.value
-      * (1 - targetMarginRate.value / 100)
-      * (1 - lossRate.value / 100)
-      / (1 + suppliesRate.value / 100)
-      * (yieldRate.value / 100)
-      / (1 + hqRate.value / 100);
-    if (Number.isFinite(allowed)) allowableRawCost = allowed;
-    else inverseCalculationError = { code: "overflow", field: "sellingPrice", message: "数値が大きすぎるため逆算できません。" };
-  }
-
   const error = forwardError;
   return {
     ok: !forwardError,
@@ -156,16 +110,10 @@ export function calculate(input) {
       rate: rateError,
       rawCost: rawCostError,
       sellingPrice: sellingPriceError,
-      targetMarginRate: targetError,
       calculation: calculationError,
-      inverseCalculation: inverseCalculationError,
     },
     ...costs,
     marginAmount,
     marginRate,
-    requiredSellingPrice,
-    reference100gPrice,
-    referenceMarginRate,
-    allowableRawCost,
   };
 }
